@@ -101,6 +101,190 @@ app.get('/api/users/:userId', verifyKeycloakToken, async (req, res) => {
   }
 });
 
+app.get('/api/clients', async (req, res) => {
+  try {
+    const clients = await keycloakAdmin.getAllClients();
+    
+    const clientsResponse = clients.map(client => ({
+      id: client.id,
+      clientId: client.clientId,
+      name: client.name,
+      description: client.description,
+      enabled: client.enabled,
+      protocol: client.protocol,
+      publicClient: client.publicClient,
+      bearerOnly: client.bearerOnly,
+      standardFlowEnabled: client.standardFlowEnabled,
+      implicitFlowEnabled: client.implicitFlowEnabled,
+      directAccessGrantsEnabled: client.directAccessGrantsEnabled,
+      serviceAccountsEnabled: client.serviceAccountsEnabled,
+      frontchannelLogout: client.frontchannelLogout,
+      fullScopeAllowed: client.fullScopeAllowed
+    }));
+
+    res.json({
+      clients: clientsResponse,
+      count: clientsResponse.length
+    });
+  } catch (error) {
+    console.error('Error fetching clients:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch clients',
+      message: error.message 
+    });
+  }
+});
+
+app.get('/api/clients/:clientId', async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const client = await keycloakAdmin.getClientById(clientId);
+    
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    res.json({
+      id: client.id,
+      clientId: client.clientId,
+      name: client.name,
+      description: client.description,
+      enabled: client.enabled,
+      protocol: client.protocol,
+      publicClient: client.publicClient,
+      bearerOnly: client.bearerOnly,
+      standardFlowEnabled: client.standardFlowEnabled,
+      implicitFlowEnabled: client.implicitFlowEnabled,
+      directAccessGrantsEnabled: client.directAccessGrantsEnabled,
+      serviceAccountsEnabled: client.serviceAccountsEnabled,
+      frontchannelLogout: client.frontchannelLogout,
+      fullScopeAllowed: client.fullScopeAllowed,
+      redirectUris: client.redirectUris,
+      webOrigins: client.webOrigins,
+      attributes: client.attributes
+    });
+  } catch (error) {
+    console.error('Error fetching client:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch client',
+      message: error.message 
+    });
+  }
+});
+
+app.get('/api/roles', async (req, res) => {
+  try {
+    const roles = await keycloakAdmin.getAllRoles();
+    
+    const rolesResponse = roles.map(role => ({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      composite: role.composite,
+      clientRole: role.clientRole,
+      containerId: role.containerId,
+      attributes: role.attributes
+    }));
+
+    res.json({
+      roles: rolesResponse,
+      count: rolesResponse.length
+    });
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch roles',
+      message: error.message 
+    });
+  }
+});
+
+app.get('/api/roles/:roleName', async (req, res) => {
+  try {
+    const { roleName } = req.params;
+    const role = await keycloakAdmin.getRoleByName(roleName);
+    
+    if (!role) {
+      return res.status(404).json({ error: 'Role not found' });
+    }
+
+    res.json({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      composite: role.composite,
+      clientRole: role.clientRole,
+      containerId: role.containerId,
+      attributes: role.attributes
+    });
+  } catch (error) {
+    console.error('Error fetching role:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch role',
+      message: error.message 
+    });
+  }
+});
+
+app.get('/api/roles/:roleName/users', async (req, res) => {
+  try {
+    const { roleName } = req.params;
+    const users = await keycloakAdmin.getUsersInRole(roleName);
+    console.log('Users in role:', users);
+    
+    const usersResponse = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      enabled: user.enabled,
+      emailVerified: user.emailVerified,
+      createdTimestamp: user.createdTimestamp
+    }));
+
+    res.json({
+      roleName: roleName,
+      users: usersResponse,
+      count: usersResponse.length
+    });
+  } catch (error) {
+    console.error('Error fetching users in role:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch users in role',
+      message: error.message 
+    });
+  }
+});
+
+app.get('/api/users/:userId/roles', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const roles = await keycloakAdmin.getUserRoles(userId);
+    
+    const rolesResponse = roles.map(role => ({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      composite: role.composite,
+      clientRole: role.clientRole,
+      containerId: role.containerId
+    }));
+
+    res.json({
+      userId: userId,
+      roles: rolesResponse,
+      count: rolesResponse.length
+    });
+  } catch (error) {
+    console.error('Error fetching user roles:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch user roles',
+      message: error.message 
+    });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });
